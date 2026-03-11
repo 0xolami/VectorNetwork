@@ -84,3 +84,173 @@ cards.forEach(card => {
     });
 
 });
+
+const canvas = document.getElementById("vectorFX")
+const ctx = canvas.getContext("2d")
+
+canvas.width = window.innerWidth
+canvas.height = window.innerHeight
+
+let particles = []
+let mouse = {x:0,y:0}
+let wormholes = []
+
+window.addEventListener("mousemove",e=>{
+mouse.x = e.clientX
+mouse.y = e.clientY
+})
+
+class Particle{
+
+constructor(){
+
+this.x = Math.random()*canvas.width
+this.y = Math.random()*canvas.height
+
+this.vx = (Math.random()-0.5)*2
+this.vy = (Math.random()-0.5)*2
+
+this.size = Math.random()*2+1
+this.depth = Math.random()*5
+
+}
+
+draw(){
+
+ctx.beginPath()
+ctx.arc(this.x,this.y,this.size,0,Math.PI*2)
+
+ctx.fillStyle = "rgba(0,255,255,0.8)"
+ctx.fill()
+
+}
+
+update(){
+
+this.x += this.vx
+this.y += this.vy
+
+// cursor gravity
+let dx = mouse.x - this.x
+let dy = mouse.y - this.y
+let dist = Math.sqrt(dx*dx+dy*dy)
+
+if(dist < 200){
+this.vx += dx*0.0007
+this.vy += dy*0.0007
+}
+
+// wormhole gravity
+wormholes.forEach(w=>{
+
+let wx = w.x - this.x
+let wy = w.y - this.y
+
+let wdist = Math.sqrt(wx*wx+wy*wy)
+
+if(wdist < 400){
+
+this.vx += wx*0.001
+this.vy += wy*0.001
+
+}
+
+})
+
+this.vx *= 0.99
+this.vy *= 0.99
+
+this.draw()
+
+}
+
+}
+
+function init(){
+
+particles=[]
+
+for(let i=0;i<250;i++){
+particles.push(new Particle())
+}
+
+}
+
+init()
+
+function connect(){
+
+for(let a=0;a<particles.length;a++){
+
+for(let b=a;b<particles.length;b++){
+
+let dx = particles[a].x - particles[b].x
+let dy = particles[a].y - particles[b].y
+
+let dist = Math.sqrt(dx*dx+dy*dy)
+
+if(dist < 120){
+
+ctx.strokeStyle="rgba(0,255,255,0.15)"
+ctx.lineWidth=1
+
+ctx.beginPath()
+ctx.moveTo(particles[a].x,particles[a].y)
+ctx.lineTo(particles[b].x,particles[b].y)
+ctx.stroke()
+
+}
+
+}
+
+}
+
+}
+
+function animate(){
+
+ctx.clearRect(0,0,canvas.width,canvas.height)
+
+particles.forEach(p=>p.update())
+
+connect()
+
+requestAnimationFrame(animate)
+
+}
+
+animate()
+
+// wormhole creation
+
+window.addEventListener("click",e=>{
+
+let hole = {
+x:e.clientX,
+y:e.clientY
+}
+
+wormholes.push(hole)
+
+let visual = document.createElement("div")
+visual.className="wormholeFX"
+
+visual.style.left = (e.clientX-125)+"px"
+visual.style.top = (e.clientY-125)+"px"
+
+document.body.appendChild(visual)
+
+setTimeout(()=>{
+visual.remove()
+wormholes.shift()
+},3500)
+
+})
+
+// resize
+
+window.addEventListener("resize",()=>{
+canvas.width = window.innerWidth
+canvas.height = window.innerHeight
+init()
+})
