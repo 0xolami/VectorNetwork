@@ -88,77 +88,63 @@ cards.forEach(card => {
 const canvas = document.getElementById("vectorFX")
 const ctx = canvas.getContext("2d")
 
+function resizeCanvas(){
 canvas.width = window.innerWidth
 canvas.height = window.innerHeight
+}
 
-let particles = []
-let mouse = {x:0,y:0}
-let wormholes = []
+resizeCanvas()
 
-window.addEventListener("mousemove",e=>{
-mouse.x = e.clientX
-mouse.y = e.clientY
-})
+let particles=[]
+let pointer={x:0,y:0}
+let wormholes=[]
 
 class Particle{
 
 constructor(){
-
-this.x = Math.random()*canvas.width
-this.y = Math.random()*canvas.height
-
-this.vx = (Math.random()-0.5)*2
-this.vy = (Math.random()-0.5)*2
-
-this.size = Math.random()*2+1
-this.depth = Math.random()*5
-
+this.x=Math.random()*canvas.width
+this.y=Math.random()*canvas.height
+this.vx=(Math.random()-.5)*2
+this.vy=(Math.random()-.5)*2
+this.size=Math.random()*2+1
 }
 
 draw(){
-
 ctx.beginPath()
 ctx.arc(this.x,this.y,this.size,0,Math.PI*2)
-
-ctx.fillStyle = "rgba(0,255,255,0.8)"
+ctx.fillStyle="rgba(0,255,255,0.8)"
 ctx.fill()
-
 }
 
 update(){
 
-this.x += this.vx
-this.y += this.vy
+this.x+=this.vx
+this.y+=this.vy
 
-// cursor gravity
-let dx = mouse.x - this.x
-let dy = mouse.y - this.y
-let dist = Math.sqrt(dx*dx+dy*dy)
+// pointer gravity
+let dx=pointer.x-this.x
+let dy=pointer.y-this.y
+let dist=Math.sqrt(dx*dx+dy*dy)
 
-if(dist < 200){
-this.vx += dx*0.0007
-this.vy += dy*0.0007
+if(dist<200){
+this.vx+=dx*0.0007
+this.vy+=dy*0.0007
 }
 
 // wormhole gravity
 wormholes.forEach(w=>{
+let wx=w.x-this.x
+let wy=w.y-this.y
+let wdist=Math.sqrt(wx*wx+wy*wy)
 
-let wx = w.x - this.x
-let wy = w.y - this.y
-
-let wdist = Math.sqrt(wx*wx+wy*wy)
-
-if(wdist < 400){
-
-this.vx += wx*0.001
-this.vy += wy*0.001
-
+if(wdist<350){
+this.vx+=wx*0.001
+this.vy+=wy*0.001
 }
-
 })
 
-this.vx *= 0.99
-this.vy *= 0.99
+this.vx*=0.99
+this.vy*=0.99
 
 this.draw()
 
@@ -170,7 +156,7 @@ function init(){
 
 particles=[]
 
-for(let i=0;i<250;i++){
+for(let i=0;i<200;i++){
 particles.push(new Particle())
 }
 
@@ -184,15 +170,13 @@ for(let a=0;a<particles.length;a++){
 
 for(let b=a;b<particles.length;b++){
 
-let dx = particles[a].x - particles[b].x
-let dy = particles[a].y - particles[b].y
+let dx=particles[a].x-particles[b].x
+let dy=particles[a].y-particles[b].y
+let dist=Math.sqrt(dx*dx+dy*dy)
 
-let dist = Math.sqrt(dx*dx+dy*dy)
-
-if(dist < 120){
+if(dist<120){
 
 ctx.strokeStyle="rgba(0,255,255,0.15)"
-ctx.lineWidth=1
 
 ctx.beginPath()
 ctx.moveTo(particles[a].x,particles[a].y)
@@ -221,36 +205,59 @@ requestAnimationFrame(animate)
 
 animate()
 
-// wormhole creation
+/* Desktop pointer */
 
-window.addEventListener("click",e=>{
+window.addEventListener("mousemove",e=>{
+pointer.x=e.clientX
+pointer.y=e.clientY
+})
 
-let hole = {
-x:e.clientX,
-y:e.clientY
-}
+/* Mobile touch */
 
-wormholes.push(hole)
+window.addEventListener("touchmove",e=>{
+pointer.x=e.touches[0].clientX
+pointer.y=e.touches[0].clientY
+})
 
-let visual = document.createElement("div")
+/* Wormhole spawn */
+
+function createWormhole(x,y){
+
+wormholes.push({x,y})
+
+let visual=document.createElement("div")
 visual.className="wormholeFX"
 
-visual.style.left = (e.clientX-125)+"px"
-visual.style.top = (e.clientY-125)+"px"
+visual.style.left=(x-110)+"px"
+visual.style.top=(y-110)+"px"
 
 document.body.appendChild(visual)
 
 setTimeout(()=>{
 visual.remove()
 wormholes.shift()
-},3500)
+},3000)
 
+}
+
+/* Desktop click */
+
+window.addEventListener("click",e=>{
+createWormhole(e.clientX,e.clientY)
 })
 
-// resize
+/* Mobile tap */
+
+window.addEventListener("touchstart",e=>{
+createWormhole(
+e.touches[0].clientX,
+e.touches[0].clientY
+)
+})
+
+/* resize */
 
 window.addEventListener("resize",()=>{
-canvas.width = window.innerWidth
-canvas.height = window.innerHeight
+resizeCanvas()
 init()
 })
