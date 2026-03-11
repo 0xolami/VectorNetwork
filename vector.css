@@ -273,3 +273,42 @@
      border-radius: 8px;
      text-decoration: none;
  }
+
+ #vectorFX {
+     position: fixed;
+     top: 0;
+     left: 0;
+     width: 100%;
+     height: 100%;
+     pointer-events: none;
+     z-index: 1;
+ }
+
+ .wormholeFX {
+     position: fixed;
+     width: 250px;
+     height: 250px;
+     border-radius: 50%;
+     background: radial-gradient(circle,
+             rgba(0, 255, 255, 0.9),
+             rgba(0, 140, 255, 0.6),
+             rgba(0, 0, 0, 0));
+
+     filter: blur(15px);
+     animation: wormSpin 2s linear infinite;
+     mix-blend-mode: screen;
+ }
+
+ @keyframes wormSpin {
+     0% {
+         transform: rotate(0deg) scale(.7);
+     }
+
+     50% {
+         transform: rotate(180deg) scale(1.2);
+     }
+
+     100% {
+         transform: rotate(360deg) scale(.7);
+     }
+ }
